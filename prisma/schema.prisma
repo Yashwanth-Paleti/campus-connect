@@ -1,0 +1,37 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  password     String
+  year         String
+  department   String
+  role         String     @default("Junior")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  resources    Resource[]
+}
+
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  subject     String
+  fileUrl     String
+  uploadDate  DateTime @default(now())
+
+  uploaderId  String
+  uploader    User     @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([subject])
+  @@index([uploaderId])
+}
