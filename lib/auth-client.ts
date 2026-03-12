@@ -1,16 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
-// Prevent multiple Prisma instances in development (Next.js hot reload)
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-
-const createAdapter = () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL as string });
-    return new PrismaPg(pool);
-};
-
-export const prisma = globalForPrisma.prisma || new PrismaClient({ adapter: createAdapter() });
+const globalForPrisma = globalThis as unknown as { prisma: InstanceType<typeof PrismaClient> };
+export const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export type UserWithPassword = {
@@ -30,14 +22,12 @@ export const authClient = {
         const user = await prisma.user.findUnique({
             where: { email },
         });
-
         if (!user) return null;
-
         return {
             id: user.id,
             name: user.name,
             email: user.email,
-            passwordHash: user.password, // 'password' column stores the hash
+            passwordHash: user.password,
             year: user.year,
             department: user.department,
             role: user.role,
@@ -53,7 +43,6 @@ export const authClient = {
         year: string;
         department: string;
     }) {
-        // Determine role from year
         let role = "Junior";
         if (data.year === "3" || data.year === "4") role = "Senior";
         if (data.year === "Alumni") role = "Alumni";
@@ -62,13 +51,12 @@ export const authClient = {
             data: {
                 name: data.name,
                 email: data.email,
-                password: data.passwordHash, // stored as bcrypt hash
+                password: data.passwordHash,
                 year: data.year,
                 department: data.department,
                 role,
             },
         });
-
         return user;
     },
 };
