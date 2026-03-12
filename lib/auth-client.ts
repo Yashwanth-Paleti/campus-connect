@@ -1,8 +1,16 @@
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaClient } = require("@prisma/client");
+const { PrismaPg } = require("@prisma/adapter-pg");
+const { Pool } = require("pg");
+type PrismaClientType = import("@prisma/client").PrismaClient;
 
-const globalForPrisma = globalThis as unknown as { prisma: InstanceType<typeof PrismaClient> };
-export const prisma = globalForPrisma.prisma || new PrismaClient();
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+});
+const adapter = new PrismaPg(pool);
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClientType };
+export const prisma: PrismaClientType = globalForPrisma.prisma || new PrismaClient({ adapter });
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export type UserWithPassword = {
