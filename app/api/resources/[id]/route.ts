@@ -1,30 +1,41 @@
 import { NextResponse } from "next/server";
-import { resourceDb } from "@/lib/resource-db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { resourceDb } from "@/lib/resource-db";
+import { prisma } from "@/lib/auth-client";
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await params;
+
         const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const resolvedParams = await params;
-        const resourceId = resolvedParams.id;
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+        });
 
-        if (!resourceId) {
-            return NextResponse.json({ error: "Missing resource ID" }, { status: 400 });
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const success = await resourceDb.deleteResource(resourceId, session.user.id);
+        const success = await resourceDb.deleteResource(id, user.id);
 
         if (!success) {
-            return NextResponse.json({ error: "Failed to delete resource or unauthorized" }, { status: 403 });
+            return NextResponse.json(
+                { error: "Resource not found or unauthorized" },
+                { status: 403 }
+            );
         }
 
-        return new NextResponse(null, { status: 204 });
+        return NextResponse.json({ message: "Resource deleted" });
     } catch (error) {
+        console.error("Delete error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
