@@ -223,8 +223,8 @@ export default function DashboardPage() {
                     <button
                         onClick={() => setActiveTab("resources")}
                         className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "resources"
-                                ? "border-primary text-primary"
-                                : "border-transparent text-muted-foreground hover:text-foreground"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         Resources
@@ -232,8 +232,8 @@ export default function DashboardPage() {
                     <button
                         onClick={() => setActiveTab("upload")}
                         className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "upload"
-                                ? "border-primary text-primary"
-                                : "border-transparent text-muted-foreground hover:text-foreground"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         Upload
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                                                 <Download className="w-3 h-3 mr-1" />
                                                 Download
                                             </Button>
-                                            {(session?.user as any)?.email === resource.uploaderId && (
+                                            {session?.user?.email === resource.uploaderEmail && (
                                                 <Button
                                                     size="sm"
                                                     variant="destructive"

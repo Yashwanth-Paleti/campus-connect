@@ -21,6 +21,7 @@ export const resourceDb = {
             uploaderId: r.uploaderId,
             uploaderName: r.uploader.name,
             uploaderYear: r.uploader.year,
+            uploaderEmail: r.uploader.email,
             uploadDate: r.uploadDate.toISOString().split("T")[0],
         }));
     },
@@ -57,6 +58,7 @@ export const resourceDb = {
             uploaderId: resource.uploaderId,
             uploaderName: resource.uploader.name,
             uploaderYear: resource.uploader.year,
+            uploaderEmail: resource.uploader.email,
             uploadDate: resource.uploadDate.toISOString().split("T")[0],
         };
     },

@@ -16,6 +16,7 @@ export interface Resource {
     subject: string;
     uploaderName: string;
     uploaderYear: string;
+    uploaderEmail: string;  // ← ADD THIS
     uploadDate: string;
     fileUrl: string;
     uploaderId: string;
