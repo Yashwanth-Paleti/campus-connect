@@ -8,14 +8,16 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function fetchPdfText(url: string): Promise<string> {
     try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
         if (!response.ok) return "";
+
         const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const pdfParse = require("pdf-parse");
-        const parsed = await pdfParse(buffer);
-        return parsed.text?.slice(0, 8000) || "";
+
+        // Use unpdf - works on Vercel edge/serverless
+        const { extractText } = await import("unpdf");
+        const { text } = await extractText(new Uint8Array(arrayBuffer), { mergePages: true });
+
+        return text?.slice(0, 8000) || "";
     } catch (err) {
         console.error("PDF parse error:", err);
         return "";
