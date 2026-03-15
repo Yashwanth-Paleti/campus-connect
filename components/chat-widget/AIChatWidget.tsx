@@ -11,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import ReactMarkdown from "react-markdown";
 
 const SUBJECTS = ["All", "CN", "DBMS", "OS", "DSA", "AI", "ML", "OOP", "SE", "TOC", "Maths", "Physics"];
 
@@ -194,8 +195,8 @@ export function AIChatWidget() {
                             >
                                 {/* Avatar */}
                                 <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "ai"
-                                        ? "bg-primary/10 text-primary"
-                                        : "bg-secondary text-secondary-foreground"
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-secondary text-secondary-foreground"
                                     }`}>
                                     {msg.role === "ai"
                                         ? <Bot className="w-4 h-4" />
@@ -205,13 +206,15 @@ export function AIChatWidget() {
 
                                 {/* Bubble */}
                                 <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${msg.role === "user"
-                                        ? "bg-primary text-primary-foreground rounded-tr-sm"
-                                        : "bg-muted text-foreground rounded-tl-sm"
+                                    ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                    : "bg-muted text-foreground rounded-tl-sm"
                                     }`}>
-                                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                    </div>
                                     <p className={`text-xs mt-1 ${msg.role === "user"
-                                            ? "text-primary-foreground/60"
-                                            : "text-muted-foreground"
+                                        ? "text-primary-foreground/60"
+                                        : "text-muted-foreground"
                                         }`}>
                                         {msg.timestamp}
                                     </p>
