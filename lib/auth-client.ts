@@ -51,10 +51,6 @@ export const authClient = {
         year: string;
         department: string;
     }) {
-        let role = "Junior";
-        if (data.year === "3" || data.year === "4") role = "Senior";
-        if (data.year === "Alumni") role = "Alumni";
-
         const user = await prisma.user.create({
             data: {
                 name: data.name,
@@ -62,7 +58,6 @@ export const authClient = {
                 password: data.passwordHash,
                 year: data.year,
                 department: data.department,
-                role,
             },
         });
         return user;

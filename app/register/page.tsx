@@ -27,10 +27,7 @@ export default function RegisterPage() {
     const [selectedYear, setSelectedYear] = useState("1");
     const [selectedDept, setSelectedDept] = useState("CSE");
 
-    // Auto-assign role based on year
-    let autoRole = "Junior";
-    if (selectedYear === "3" || selectedYear === "4") autoRole = "Senior";
-    if (selectedYear === "Alumni") autoRole = "Alumni";
+
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -153,10 +150,6 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        <div className="bg-primary/5 border border-primary/20 rounded-md p-3 text-sm flex justify-between items-center text-primary">
-                            <span className="font-medium">Assigned Role:</span>
-                            <span className="font-bold">{autoRole}</span>
-                        </div>
 
                         <div className="space-y-2 relative">
                             <Label htmlFor="password">Password</Label>
