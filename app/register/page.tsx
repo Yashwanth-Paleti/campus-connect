@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 
 const YEARS = ["1", "2", "3", "4", "Alumni"];
-const DEPARTMENTS = ["CSE", "IT", "ECE", "EEE", "ME", "Civil", "Other"];
+const DEPARTMENTS = ["CSE", "CSE(AI-ML)", "CSE(DS)", "IT", "ECE", "EEE", "ME", "Civil", "Other"];
 
 export default function RegisterPage() {
     const router = useRouter();
