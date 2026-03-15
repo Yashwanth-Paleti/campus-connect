@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Resource } from "@/lib/types";
 import { createClient } from "@supabase/supabase-js";
+import { AIChatWidget } from "@/components/chat-widget/AIChatWidget";
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -428,6 +429,7 @@ export default function DashboardPage() {
                     </div>
                 )}
             </main>
+            <AIChatWidget />
         </div>
     );
 }
