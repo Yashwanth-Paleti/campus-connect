@@ -76,7 +76,7 @@ ${resourceContext ? `Context from uploaded study materials:${resourceContext}` :
 Always be helpful, accurate, and student-friendly. If you reference the uploaded materials, mention which resource you're drawing from.`;
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             systemInstruction: systemPrompt,
         });
 
