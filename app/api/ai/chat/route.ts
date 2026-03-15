@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { resourceDb } from "@/lib/resource-db";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function fetchPdfText(url: string): Promise<string> {
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        if (!response.ok) return "";
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const pdfParse = require("pdf-parse");
         const parsed = await pdfParse(buffer);
@@ -39,14 +39,12 @@ export async function POST(req: Request) {
         let resourceContext = "";
 
         if (subject && subject !== "All") {
-            // Fetch resources for selected subject
             const allResources = await resourceDb.getAllResources();
             const subjectResources = allResources.filter((r) => r.subject === subject);
 
             if (subjectResources.length > 0) {
                 resourceContext = `\n\nThe following study materials have been uploaded for ${subject}:\n`;
 
-                // Extract text from up to 3 PDFs to stay within token limits
                 const resourcesToRead = subjectResources.slice(0, 3);
                 for (const resource of resourcesToRead) {
                     resourceContext += `\n--- ${resource.title} (by ${resource.uploaderName}) ---\n`;
@@ -63,35 +61,40 @@ export async function POST(req: Request) {
         }
 
         const systemPrompt = `You are an AI academic assistant for Campus Connect, a peer-to-peer academic resource sharing platform for college students.
- 
+
 Your role:
 - Answer academic questions clearly and concisely
 - Help students understand difficult concepts
 - Summarize study materials when asked
 - Provide examples and explanations relevant to college curriculum
 - Be encouraging and supportive
- 
-${resourceContext ? `Context from uploaded study materials:${resourceContext}` : "No specific subject filter is active. Answer general academic questions."}
- 
-Always be helpful, accurate, and student-friendly. If you reference the uploaded materials, mention which resource you're drawing from.`;
+- Act like a smart study buddy — friendly, knowledgeable, and always helpful
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
-            systemInstruction: systemPrompt,
-        });
+${resourceContext
+                ? `Context from uploaded study materials for ${subject}:${resourceContext}\n\nUse this content to answer questions. Reference the resource title when drawing from it.`
+                : "No specific subject filter is active. Answer general academic questions helpfully and thoroughly."
+            }
+
+Always be helpful, accurate, and student-friendly. Format your responses clearly using bullet points or numbered lists when explaining multi-step concepts.`;
 
         // Build chat history for multi-turn conversation
         const chatHistory = (history || []).map((msg: { role: string; content: string }) => ({
-            role: msg.role === "user" ? "user" : "model",
-            parts: [{ text: msg.content }],
+            role: msg.role === "user" ? "user" as const : "assistant" as const,
+            content: msg.content,
         }));
 
-        const chat = model.startChat({
-            history: chatHistory,
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: "system", content: systemPrompt },
+                ...chatHistory,
+                { role: "user", content: message },
+            ],
+            temperature: 0.7,
+            max_tokens: 1024,
         });
 
-        const result = await chat.sendMessage(message);
-        const response = result.response.text();
+        const response = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
 
         return NextResponse.json({ reply: response });
     } catch (error) {
