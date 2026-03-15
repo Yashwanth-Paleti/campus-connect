@@ -16,6 +16,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Resource } from "@/lib/types";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 const SUBJECTS = ["CN", "DBMS", "OS", "DSA", "AI", "ML", "OOP", "SE", "TOC", "Maths", "Physics"];
 
@@ -41,14 +47,12 @@ export default function DashboardPage() {
     const [uploadError, setUploadError] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Redirect if not logged in
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
         }
     }, [status, router]);
 
-    // Fetch resources
     const fetchResources = async () => {
         setIsLoadingResources(true);
         try {
@@ -69,7 +73,6 @@ export default function DashboardPage() {
         }
     }, [status]);
 
-    // Filter resources
     useEffect(() => {
         let filtered = resources;
 
@@ -101,22 +104,43 @@ export default function DashboardPage() {
         setUploadError("");
         setUploadSuccess(false);
 
-        const formData = new FormData();
-        formData.append("title", uploadTitle);
-        formData.append("description", uploadDesc);
-        formData.append("subject", uploadSubject);
-        formData.append("file", uploadFile);
-
         try {
+            // Step 1 — Upload file directly to Supabase Storage from browser
+            const fileName = `${Date.now()}-${uploadFile.name.replace(/\s+/g, "-")}`;
+
+            const { error: storageError } = await supabase.storage
+                .from("resources")
+                .upload(fileName, uploadFile, {
+                    contentType: "application/pdf",
+                    upsert: false,
+                });
+
+            if (storageError) {
+                setUploadError("File upload failed: " + storageError.message);
+                return;
+            }
+
+            // Step 2 — Get public URL
+            const { data: urlData } = supabase.storage
+                .from("resources")
+                .getPublicUrl(fileName);
+
+            // Step 3 — Save metadata as JSON to API
             const res = await fetch("/api/resources", {
                 method: "POST",
-                body: formData,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: uploadTitle,
+                    description: uploadDesc,
+                    subject: uploadSubject,
+                    fileUrl: urlData.publicUrl,
+                }),
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                setUploadError(data.error || "Upload failed");
+                setUploadError(data.error || "Failed to save resource");
                 return;
             }
 
@@ -131,6 +155,7 @@ export default function DashboardPage() {
                 setActiveTab("resources");
                 setUploadSuccess(false);
             }, 1500);
+
         } catch (err) {
             setUploadError("Something went wrong. Please try again.");
         } finally {
@@ -218,7 +243,6 @@ export default function DashboardPage() {
                 {/* Resources Tab */}
                 {activeTab === "resources" && (
                     <div>
-                        {/* Toolbar */}
                         <div className="flex flex-col sm:flex-row gap-3 mb-6">
                             <div className="flex gap-2 flex-1">
                                 <div className="relative flex-1">
@@ -254,7 +278,6 @@ export default function DashboardPage() {
                             </Select>
                         </div>
 
-                        {/* Resource Grid */}
                         {isLoadingResources ? (
                             <div className="flex justify-center py-20">
                                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -264,10 +287,7 @@ export default function DashboardPage() {
                                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-30" />
                                 <p className="text-lg font-medium">No resources found.</p>
                                 <p className="text-sm">Be the first to upload study materials.</p>
-                                <Button
-                                    className="mt-4"
-                                    onClick={() => setActiveTab("upload")}
-                                >
+                                <Button className="mt-4" onClick={() => setActiveTab("upload")}>
                                     Upload Resource
                                 </Button>
                             </div>
