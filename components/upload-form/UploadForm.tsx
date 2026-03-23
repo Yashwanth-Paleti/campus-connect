@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UploadCloud, File, X, Loader2, CheckCircle2 } from "lucide-react";
 import { Resource } from "@/lib/types";
 
-const SUBJECTS = ["CN", "DBMS", "OS", "DSA", "AI", "ML", "OOP", "SE", "TOC", "Maths", "Physics", "General"];
+const SUBJECTS = ["CN", "FSD", "DBMS", "OS", "DSA", "AI", "ML", "OOP", "SE", "TOC", "Maths", "Physics", "General"];
 
 export function UploadForm({ onUploadSuccess }: { onUploadSuccess?: (resource: Resource) => void }) {
     const [isUploading, setIsUploading] = useState(false);
